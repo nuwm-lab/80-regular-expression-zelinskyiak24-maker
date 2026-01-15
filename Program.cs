@@ -1,38 +1,90 @@
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-class Program
+namespace LabWork
 {
-    static void Main()
+    class IpAddressFinder
     {
-        Console.WriteLine("Введіть текст:");
-        string text = Console.ReadLine();
+        private string text;
+        private List<string> ipAddresses;
 
-        if (string.IsNullOrWhiteSpace(text))
+        public IpAddressFinder(string text)
         {
-            Console.WriteLine("Нічого не введено.");
-            return;
+            this.text = text;
+            ipAddresses = new List<string>();
         }
 
-        
-        string pattern = @"(?<=\()\d+(?=\))|(?<=\[)\d+(?=\])";
-        MatchCollection matches = Regex.Matches(text, pattern);
-
-        Console.WriteLine("Знайдені числа в дужках:");
-
-        if (matches.Count == 0)
+        public void FindIpAddresses()
         {
-            Console.WriteLine("Немає збігів.");
-        }
-        else
-        {
+            string pattern = @"\b\d{1,3}(\.\d{1,3}){3}\b";
+            Regex regex = new Regex(pattern);
+
+            MatchCollection matches = regex.Matches(text);
+
             foreach (Match match in matches)
             {
-                Console.WriteLine(match.Value); 
+                ipAddresses.Add(match.Value);
             }
         }
 
-        Console.WriteLine("Натисніть будь-яку клавішу для виходу...");
-        Console.ReadKey();
+        public void PrintIpAddresses()
+        {
+            if (ipAddresses.Count == 0)
+            {
+                Console.WriteLine("IP-адреси не знайдені.");
+                return;
+            }
+
+            Console.WriteLine("Знайдені IP-адреси:");
+            for (int i = 0; i < ipAddresses.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {ipAddresses[i]}");
+            }
+        }
+
+        public int GetCount()
+        {
+            return ipAddresses.Count;
+        }
+
+        public void Clear()
+        {
+            ipAddresses.Clear();
+        }
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            Console.WriteLine("Введіть текст для пошуку IP-адрес:");
+            string inputText = Console.ReadLine();
+
+            IpAddressFinder finder = new IpAddressFinder(inputText);
+
+            finder.FindIpAddresses();
+            finder.PrintIpAddresses();
+
+            Console.WriteLine();
+            Console.WriteLine("Загальна кількість знайдених IP-адрес: " + finder.GetCount());
+
+            Console.WriteLine();
+            Console.WriteLine("Повторний пошук у стандартному тексті:");
+
+            string defaultText =
+                "Сервери мають такі адреси: 192.168.1.1, 10.0.0.1. " +
+                "DNS Google: 8.8.8.8 та 8.8.4.4. " +
+                "Некоректна адреса: 999.999.999.999.";
+
+            finder.Clear();
+            finder = new IpAddressFinder(defaultText);
+
+            finder.FindIpAddresses();
+            finder.PrintIpAddresses();
+
+            Console.WriteLine();
+            Console.WriteLine("Кількість IP-адрес у стандартному тексті: " + finder.GetCount());
+        }
     }
 }
